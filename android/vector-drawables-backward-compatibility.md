@@ -2,10 +2,10 @@
 
 Vector drawable was introduced to Android from 5.0 (API level 21), Today I learned that for Android Version lower than 5.0, to support backward compatibility of vector drawable, there are two solutions
 
-|  Tech   | Note  | Deawback
+|  Tech   | Note  | Drawback
 |  ----  | ----  | ----  |
 | PNG generation  | generate png on build time | 1. some vector drawable element not supported <br> 2. larger apk size <br>|
-| Support Library  | render the vector drawable using support lib in runtime | can be only used in ImageView via app:srcCompat or setImageResource ( if used in places like launcher icons, can not be displaced as there is no vector drawable or png generated)|
+| Support Library  | render the vector drawable using support lib in runtime | can be only used in ImageView via app:srcCompat or setImageResource ( if used in places like launcher icons, can not be displaced as there is no vector drawable support or png generated)|
 
 ## Using PNG generation
 
