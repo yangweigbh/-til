@@ -1,6 +1,5 @@
 import git
 from datetime import timezone
-import os
 import pathlib
 import sys
 import re
@@ -22,38 +21,38 @@ def created_changed_times(repo_path, ref="main"):
                     "created": dt.isoformat(),
                     "created_utc": dt.astimezone(timezone.utc).isoformat(),
                 }
-            created_changed_times[filepath].update(
-                {
-                    "updated": dt.isoformat(),
-                    "updated_utc": dt.astimezone(timezone.utc).isoformat(),
-                }
-            )
     return created_changed_times
 
 
 def build_database(repo_path):
     all_times = created_changed_times(repo_path)
-    db = sqlite_utils.Database(repo_path / "til.db")
-    table = db.table("til", pk="path")
-    for filepath in root.glob("*/*.md"):
-        fp = filepath.open()
-        title = fp.readline().lstrip("#").strip()
-        body = fp.read().strip()
-        path = str(filepath.relative_to(root))
-        url = "https://github.com/simonw/til/blob/main/{}".format(path)
+    article_list = {}
+    for item in root.iterdir():
+        if item.is_file():
+            continue
+        if len(list(item.glob("*.md"))) == 0:
+            continue
+        topic = item.name
+        article_list[topic] = []
+        for filepath in item.iterdir():
+            fp = filepath.open()
+            title = fp.readline().lstrip("#").strip()
+            path = str(filepath.relative_to(root).to)
+            url = "https://github.com/yangweigbh/til/blob/main/{}".format(path)
+
+            article_list[topic].append({"title": title, "url": url, "created_time": all_times[path]})
+
+        article_list[topic].sort(key=lambda article: article["created_time"], reverse=True)
 
 if __name__ == "__main__":
-    db = sqlite_utils.Database(root / "til.db")
-    by_topic = {}
-    for row in db["til"].rows_where(order_by="created_utc"):
-        by_topic.setdefault(row["topic"], []).append(row)
+    by_topic = build_database(root)
     index = ["<!-- index starts -->"]
     for topic, rows in by_topic.items():
         index.append("## {}\n".format(topic))
         for row in rows:
             index.append(
                 "* [{title}]({url}) - {date}".format(
-                    date=row["created"].split("T")[0], **row
+                    date=row["created_time"].split("T")[0], **row
                 )
             )
         index.append("")
