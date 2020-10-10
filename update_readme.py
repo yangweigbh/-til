@@ -37,12 +37,14 @@ def build_database(repo_path):
         for filepath in item.iterdir():
             fp = filepath.open()
             title = fp.readline().lstrip("#").strip()
-            path = str(filepath.relative_to(root).to)
+            path = str(filepath.relative_to(root))
             url = "https://github.com/yangweigbh/til/blob/main/{}".format(path)
 
-            article_list[topic].append({"title": title, "url": url, "created_time": all_times[path]})
+            article_list[topic].append({"title": title, "url": url, "timestamp": all_times[path]})
 
-        article_list[topic].sort(key=lambda article: article["created_time"], reverse=True)
+        article_list[topic].sort(key=lambda article: article["timestamp"]["created_utc"], reverse=True)
+
+    return article_list
 
 if __name__ == "__main__":
     by_topic = build_database(root)
@@ -52,7 +54,7 @@ if __name__ == "__main__":
         for row in rows:
             index.append(
                 "* [{title}]({url}) - {date}".format(
-                    date=row["created_time"].split("T")[0], **row
+                    date=row["timestamp"]["created"].split("T")[0], **row
                 )
             )
         index.append("")
