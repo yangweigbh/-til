@@ -7,6 +7,9 @@ import re
 root = pathlib.Path(__file__).parent.resolve()
 
 index_re = re.compile(r"<!\-\- index starts \-\->.*<!\-\- index ends \-\->", re.DOTALL)
+count_re = re.compile(r"<!\-\- count starts \-\->.*<!\-\- count ends \-\->", re.DOTALL)
+
+COUNT_TEMPLATE = "<!-- count starts -->{}<!-- count ends -->"
 
 def created_changed_times(repo_path, ref="main"):
     created_changed_times = {}
@@ -49,6 +52,7 @@ def build_database(repo_path):
 if __name__ == "__main__":
     by_topic = build_database(root)
     index = ["<!-- index starts -->"]
+    article_count = 0
     for topic, rows in by_topic.items():
         index.append("## {}\n".format(topic))
         for row in rows:
@@ -57,6 +61,7 @@ if __name__ == "__main__":
                     date=row["timestamp"]["created"].split("T")[0], **row
                 )
             )
+            article_count += 1
         index.append("")
     if index[-1] == "":
         index.pop()
@@ -65,6 +70,8 @@ if __name__ == "__main__":
         readme = root / "README.md"
         index_txt = "\n".join(index).strip()
         readme_contents = readme.open().read()
-        readme.open("w").write(index_re.sub(index_txt, readme_contents))
+        rewritten = index_re.sub(index_txt, readme_contents)
+        rewritten = count_re.sub(COUNT_TEMPLATE.format(article_count), rewritten)
+        readme.open("w").write(rewritten)
     else:
         print("\n".join(index))
